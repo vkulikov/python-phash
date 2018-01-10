@@ -7,7 +7,7 @@ import sys
 from ctypes import byref, pointer
 from ctypes.util import find_library
 
-ALL = ['ph_dct_imagehash', 'ph_dct_videohash', 'ph_image_digest', 'image_digest', 'cross_correlation']
+__all__ = ['ph_dct_imagehash', 'ph_image_digest', 'image_digest', 'cross_correlation']
 
 FS_ENCODING = sys.getfilesystemencoding()
 
@@ -51,18 +51,29 @@ ph_dct_imagehash = libphash.ph_dct_imagehash
 ph_dct_imagehash.restype = ctypes.c_int
 ph_dct_imagehash.argtypes = [ctypes.c_char_p, ctypes.POINTER(ctypes.c_ulonglong)]
 
-ph_dct_videohash = libphash.ph_dct_videohash
-ph_dct_videohash.restype = ctypes.POINTER(ctypes.c_ulonglong)
-ph_dct_videohash.argtypes = [ctypes.c_char_p, ctypes.c_int]
+try:
+    ph_dct_videohash = libphash.ph_dct_videohash
+    ph_dct_videohash.restype = ctypes.POINTER(ctypes.c_ulonglong)
+    ph_dct_videohash.argtypes = [ctypes.c_char_p, ctypes.c_int]
+    __all__.append('ph_dct_videohash')
+except AttributeError as e:
+    print(str(e), '... continuing without ph_dct_videohash.')
 
-# ph_audiohash = libphash.ph_dct_audiohash
-# ph_audiohash.restype = ctypes.POINTER(ctypes.c_int32)
-# ph_audiohash.argtypes = [ctypes.c_float_p, ctypes.c_int]
+try:
+    ph_audiohash = libphash.ph_dct_audiohash
+    ph_audiohash.restype = ctypes.POINTER(ctypes.c_int32)
+    ph_audiohash.argtypes = [ctypes.POINTER(ctypes.c_float), ctypes.c_int]
+    __all__.append('ph_dct_audiohash')
+except AttributeError as e:
+    print(str(e), '... continuing without ph_dct_audiohash.')
 
-# ph_readaudio = libphash.ph_readaudio
-# ph_readaudio.restype = ctypes.POINTER(ctypes.c_float)
-# ph_readaudio.argtypes = [ctypes.c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_int]
-
+try:
+    ph_readaudio = libphash.ph_readaudio
+    ph_readaudio.restype = ctypes.POINTER(ctypes.c_float)
+    ph_readaudio.argtypes = [ctypes.c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_int]
+    __all__.append('ph_readaudio')
+except AttributeError as e:
+    print(str(e), '... continuing without ph_readaudio.')
 
 # int ph_hamming_distance(ulong64 hasha, ulong64 hashb);
 # double* ph_audio_distance_ber(uint32_t *hasha, int Na, uint32_t *hashb, int Nb, float threshold, int block_size, int &Nc);
@@ -72,6 +83,7 @@ ph_image_digest = libphash.ph_image_digest
 ph_image_digest.err_check = _phash_errcheck
 ph_image_digest.restype = ctypes.c_int
 ph_image_digest.argtypes = [ctypes.c_char_p, ctypes.c_double, ctypes.c_double, DIGEST_P, ctypes.c_int]
+
 
 def dct_imagehash(filename):
     if isinstance(filename, bytes):
@@ -87,12 +99,15 @@ def dct_imagehash(filename):
     else:
         return None
 
+
 ph_hamming_distance = libphash.ph_hamming_distance
 ph_hamming_distance.restype = ctypes.c_int
 ph_hamming_distance.argtypes = [ctypes.c_ulonglong, ctypes.c_ulonglong]
 
+
 def hamming_distance(hash1, hash2):
     return ph_hamming_distance(hash1, hash2)
+
 
 def image_digest(filename, sigma=1.0, gamma=1.0, lines=180):
     """
@@ -108,6 +123,7 @@ def image_digest(filename, sigma=1.0, gamma=1.0, lines=180):
     d = Digest()
     ph_image_digest(filename_bytes, sigma, gamma, d, lines)
     return d
+
 
 # To compare two radial hashes, a peak of cross correlation is determined between two hashes:
 # The peak of cross correlation between the two vectors is returned in the pcc parameter.

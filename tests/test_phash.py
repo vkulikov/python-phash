@@ -10,8 +10,6 @@ Tests for `phash` module.
 
 import unittest
 
-from phash import phash
-
 
 class TestPhash(unittest.TestCase):
 
@@ -23,6 +21,7 @@ class TestPhash(unittest.TestCase):
 
     def tearDown(self):
         pass
+
 
 if __name__ == '__main__':
     unittest.main()
